@@ -10,7 +10,6 @@ import (
 	"strings"
 
 	"github.com/fatih/color"
-	"github.com/labstack/gommon/log"
 )
 
 func checkInstalled(name string) bool {
@@ -161,7 +160,8 @@ var yayInstallable = []string{"neovim"}
 
 func main() {
 	if os.Geteuid() == 0 {
-		log.Warn("Avoid running yay as root/sudo.\n")
+		fmt.Println("Avoid running yay as root/sudo.")
+		os.Exit(1)
 	}
 
 	// schauen installed, falls nicht installieren? [ja|ignore|ignore_always(save to ~/.dotfiles.cfg)]

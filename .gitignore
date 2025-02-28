@@ -11,6 +11,8 @@
 *.dll
 *.so
 *.dylib
+# default name of the binary
+dotfiles 
 
 # Test binary, built with `go test -c`
 *.test

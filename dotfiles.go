@@ -76,6 +76,30 @@ func getHomeDir() string {
 	return homeDir
 }
 
+func installMissing(name string) {
+	greenArrow := color.GreenString("==>")
+	fmt.Println(greenArrow, color.HiMagentaString(name), "is not installed. Do you want to install it now?")
+	fmt.Println(greenArrow, color.CyanString("[Y]es"), "[N]o [Ne]ver")
+	fmt.Print(greenArrow, " ")
+
+	reader := bufio.NewReader(os.Stdin)
+	input, _ := reader.ReadString('\n')
+
+	// remove trailing newline character.
+	input = input[:len(input)-1]
+
+	if strings.EqualFold(input, "y") || input == "" {
+		fmt.Println("Installing... beep boop")
+	} else if strings.EqualFold(input, "n") {
+		fmt.Println("Ok, doing nothing.")
+	} else if strings.EqualFold(input, "ne") {
+		fmt.Println("Info is being stored. You wont be asked again")
+	} else {
+		fmt.Println("well.. OKay??")
+		os.Exit(1)
+	}
+}
+
 func main() {
 	// schauen installed, falls nicht installieren? [ja|ignore|ignore_always(save to .dotfiles.cfg)]
 	fmt.Println(":: Checking installed programs...")
@@ -87,30 +111,16 @@ func main() {
 
 	fmt.Println()
 
-	if isZshInstalled {
+	if !isZshInstalled {
+		installMissing("zsh")
 	}
-	if isOmzInstalled {
+	if !isOmzInstalled {
+		installMissing("oh-my-zsh")
 	}
-	if isP10kInstalled {
+	if !isP10kInstalled {
+		installMissing("powerlevel10k")
 	}
 	if !isYayInstalled {
-		greenArrow := color.GreenString("==>")
-		fmt.Println(greenArrow, "Yay is not installed. Do you want to install it now?")
-		fmt.Println(greenArrow, "[Y]es [N]o [Ne]ver")
-		fmt.Print(greenArrow, " ")
-
-		reader := bufio.NewReader(os.Stdin)
-		input, _ := reader.ReadString('\n')
-
-		// remove trailing newline character.
-		input = input[:len(input)-1]
-
-		if strings.EqualFold(input, "y") {
-			fmt.Print("Installing... beep boop")
-		} else if strings.EqualFold(input, "n") {
-			fmt.Println("Ok, doing nothing.")
-		} else if strings.EqualFold(input, "ne") {
-			fmt.Print("Info is being stored. You wont be asked again")
-		}
+		installMissing("yay")
 	}
 }

@@ -6,9 +6,11 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
 	"strings"
 
 	"github.com/fatih/color"
+	"github.com/labstack/gommon/log"
 )
 
 func checkInstalled(name string) bool {
@@ -76,7 +78,7 @@ func getHomeDir() string {
 	return homeDir
 }
 
-func installMissing(name string) {
+func askAboutMissing(name string) (string, error) {
 	greenArrow := color.GreenString("==>")
 	fmt.Println(greenArrow, color.HiMagentaString(name), "is not installed. Do you want to install it now?")
 	fmt.Println(greenArrow, color.CyanString("[Y]es"), "[N]o [Ne]ver")
@@ -89,19 +91,80 @@ func installMissing(name string) {
 	input = input[:len(input)-1]
 
 	if strings.EqualFold(input, "y") || input == "" {
-		fmt.Println("Installing... beep boop")
+		return "y", nil
 	} else if strings.EqualFold(input, "n") {
-		fmt.Println("Ok, doing nothing.")
+		return "n", nil
 	} else if strings.EqualFold(input, "ne") {
-		fmt.Println("Info is being stored. You wont be asked again")
+		return "ne", nil
 	} else {
-		fmt.Println("well.. OKay??")
-		os.Exit(1)
+		return "", fmt.Errorf("invalid option")
 	}
 }
 
+func handleMissing(name string) bool {
+	answer, err := askAboutMissing(name)
+	if err != nil {
+		fmt.Println("Invalid option. Aborting...")
+		os.Exit(1)
+	}
+	switch answer {
+	case "y":
+		fmt.Println(":: Installing " + name + "...")
+		return installProgram(name)
+	case "n":
+		fmt.Println("Skipping install. This will be asked again next time.")
+		return false
+	case "ne":
+		fmt.Println("Skipping install. This will", color.RedString("not"), "be asked again next time.")
+		saveIgnoreMissing(name)
+		return false
+	default:
+		return false
+	}
+}
+
+func saveIgnoreMissing(name string) {
+	panic("unimplemented")
+}
+
+func installProgram(name string) bool {
+	if name == "yay" {
+		return installYay()
+	} else if slices.Contains(yayInstallable, name) {
+		return installProgramViaYay(name)
+	} else {
+		return installSpecial(name)
+	}
+}
+
+func installYay() bool {
+	cmd := exec.Command("sudo", "ls") // TODO: change. only placeholder for sudo execution code
+
+	output, err := cmd.CombinedOutput()
+	if err != nil {
+		fmt.Printf("sudo command failed: %s, output: %s", err, output)
+	}
+
+	fmt.Printf("sudo command output: %s\n", output)
+	panic("unimplemented")
+}
+
+func installProgramViaYay(name string) bool {
+	panic("unimplemented")
+}
+
+func installSpecial(name string) bool {
+	panic("unimplemented")
+}
+
+var yayInstallable = []string{"neovim"}
+
 func main() {
-	// schauen installed, falls nicht installieren? [ja|ignore|ignore_always(save to .dotfiles.cfg)]
+	if os.Geteuid() == 0 {
+		log.Warn("Avoid running yay as root/sudo.\n")
+	}
+
+	// schauen installed, falls nicht installieren? [ja|ignore|ignore_always(save to ~/.dotfiles.cfg)]
 	fmt.Println(":: Checking installed programs...")
 
 	isZshInstalled := checkInstalled("zsh")
@@ -112,15 +175,15 @@ func main() {
 	fmt.Println()
 
 	if !isZshInstalled {
-		installMissing("zsh")
+		handleMissing("zsh")
 	}
 	if !isOmzInstalled {
-		installMissing("oh-my-zsh")
+		handleMissing("oh-my-zsh")
 	}
 	if !isP10kInstalled {
-		installMissing("powerlevel10k")
+		handleMissing("powerlevel10k")
 	}
 	if !isYayInstalled {
-		installMissing("yay")
+		isYayInstalled = handleMissing("yay")
 	}
 }

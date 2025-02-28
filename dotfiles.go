@@ -136,15 +136,28 @@ func installProgram(name string) bool {
 	}
 }
 
-func installYay() bool {
-	cmd := exec.Command("sudo", "ls") // TODO: change. only placeholder for sudo execution code
+func executeCommandDir(sudo bool, command string, args []string, dir string) bool {
+	var cmd *exec.Cmd
+	if sudo {
+		sudoArgs := append([]string{command}, args...)
+		cmd = exec.Command("sudo", sudoArgs...)
+	} else {
+		cmd = exec.Command(command, args...)
+	}
+
+	cmd.Dir = dir
 
 	output, err := cmd.CombinedOutput()
 	if err != nil {
-		fmt.Printf("sudo command failed: %s, output: %s", err, output)
+		fmt.Println(err)
+		return false
 	}
 
-	fmt.Printf("sudo command output: %s\n", output)
+	fmt.Println(string(output))
+	return true
+}
+
+func installYay() bool {
 	panic("unimplemented")
 }
 

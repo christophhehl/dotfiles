@@ -17,7 +17,6 @@ func checkYayInstalled() bool {
 	} else {
 		fmt.Println("- yay", strings.Repeat(" ", 20-len("yay")), color.RedString("(not installed)"))
 	}
-	fmt.Println()
 
 	return isInstalled
 }

@@ -101,6 +101,7 @@ func installSpecial(name string) bool {
 		} else {
 			return successful
 		}
+	default:
+		return false
 	}
-	return false
 }
